@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 namespace RefactoringKata
 {
@@ -27,27 +29,20 @@ namespace RefactoringKata
                 for (var j = 0; j < order.GetProductsCount(); j++)
                 {
                     var product = order.GetProduct(j);
-                    sb.Append("{");
-                    sb.Append("\"code\": \"");
-                    sb.Append(product.Code);
-                    sb.Append("\", ");
-                    sb.Append("\"color\": \"");
-                    sb.Append(getColorFor(product));
-                    sb.Append("\", ");
 
+                    Dictionary<string, object> productData = new Dictionary<string, object>();
+                    productData.Add("code", product.Code);
+                    productData.Add("color", getColorFor(product));
                     if (product.Size != Product.SIZE_NOT_APPLICABLE)
                     {
-                        sb.Append("\"size\": \"");
-                        sb.Append(getSizeFor(product));
-                        sb.Append("\", ");
+                        productData.Add("size", getSizeFor(product));
                     }
+                    productData.Add("price", product.Price);
+                    productData.Add("currency", product.Currency);
 
-                    sb.Append("\"price\": ");
-                    sb.Append(product.Price);
-                    sb.Append(", ");
-                    sb.Append("\"currency\": \"");
-                    sb.Append(product.Currency);
-                    sb.Append("\"}, ");
+                    sb.Append("{");
+                    sb.Append(toJson(productData));
+                    sb.Append("}, ");
                 }
 
                 if (order.GetProductsCount() > 0)
@@ -67,6 +62,20 @@ namespace RefactoringKata
             return sb.Append("]}").ToString();
         }
 
+        private string toJson(Dictionary<string, object> data)
+        {
+            var sb = new StringBuilder();
+            foreach (KeyValuePair<string, object> item in data)
+            {
+                if (item.Value is double)
+                    sb.Append(string.Format("\"{0}\": {1}", item.Key, item.Value));
+                else
+                    sb.Append(string.Format("\"{0}\": \"{1}\"", item.Key, item.Value));
+                sb.Append(", ");
+            }
+            sb.Remove(sb.Length - 2, 2);
+            return sb.ToString();
+        }
 
         private string getSizeFor(Product product)
         {
