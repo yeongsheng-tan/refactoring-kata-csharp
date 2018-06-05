@@ -1,6 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
+using static RefactoringKata.JsonBuilder;
 
 namespace RefactoringKata
 {
@@ -29,20 +32,9 @@ namespace RefactoringKata
                 for (var j = 0; j < order.GetProductsCount(); j++)
                 {
                     var product = order.GetProduct(j);
+                    var productData = ProductData(product);
 
-                    Dictionary<string, object> productData = new Dictionary<string, object>();
-                    productData.Add("code", product.Code);
-                    productData.Add("color", getColorFor(product));
-                    if (product.Size != Product.SIZE_NOT_APPLICABLE)
-                    {
-                        productData.Add("size", getSizeFor(product));
-                    }
-                    productData.Add("price", product.Price);
-                    productData.Add("currency", product.Currency);
-
-                    sb.Append("{");
-                    sb.Append(toJson(productData));
-                    sb.Append("}, ");
+                    sb.Append(BuildProductJson(productData));
                 }
 
                 if (order.GetProductsCount() > 0)
@@ -62,19 +54,19 @@ namespace RefactoringKata
             return sb.Append("]}").ToString();
         }
 
-        private string toJson(Dictionary<string, object> data)
+
+        private Dictionary<string, object> ProductData(Product product)
         {
-            var sb = new StringBuilder();
-            foreach (KeyValuePair<string, object> item in data)
+            Dictionary<string, object> productData =
+                new Dictionary<string, object> {{"code", product.Code}, {"color", getColorFor(product)}};
+            if (product.Size != Product.SIZE_NOT_APPLICABLE)
             {
-                if (item.Value is double)
-                    sb.Append(string.Format("\"{0}\": {1}", item.Key, item.Value));
-                else
-                    sb.Append(string.Format("\"{0}\": \"{1}\"", item.Key, item.Value));
-                sb.Append(", ");
+                productData.Add("size", getSizeFor(product));
             }
-            sb.Remove(sb.Length - 2, 2);
-            return sb.ToString();
+
+            productData.Add("price", product.Price);
+            productData.Add("currency", product.Currency);
+            return productData;
         }
 
         private string getSizeFor(Product product)
